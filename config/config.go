@@ -68,6 +68,8 @@ var (
 	DefaultDNSProbe = DNSProbe{
 		IPProtocolFallback: true,
 	}
+
+	DefaultGRPCProbe = GRPCProbe{}
 )
 
 func init() {
@@ -121,6 +123,7 @@ type Module struct {
 	TCP     TCPProbe      `yaml:"tcp,omitempty"`
 	ICMP    ICMPProbe     `yaml:"icmp,omitempty"`
 	DNS     DNSProbe      `yaml:"dns,omitempty"`
+	GRPC    GRPCProbe     `yaml:"grpc,omitempty"`
 }
 
 type HTTPProbe struct {
@@ -185,6 +188,14 @@ type DNSProbe struct {
 	ValidateAnswer     DNSRRValidator   `yaml:"validate_answer_rrs,omitempty"`
 	ValidateAuthority  DNSRRValidator   `yaml:"validate_authority_rrs,omitempty"`
 	ValidateAdditional DNSRRValidator   `yaml:"validate_additional_rrs,omitempty"`
+}
+
+type GRPCProbe struct {
+	InsecureSkipVerify bool   `yaml:"insecure,omitempty"`
+	Service            string `yaml:"service,omitempty"`
+	Method             string `yaml:"method,omitempty"`
+	MessageType        string `yaml:"message_type,omitempty"`
+	ResponseMessage    string `yaml:"response_message,omitempty"`
 }
 
 type DNSRRValidator struct {
@@ -307,5 +318,26 @@ func (s *HeaderMatch) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		return errors.New("regexp must be set for HTTP header matchers")
 	}
 
+	return nil
+}
+
+// UnmarshalYAML implements the yaml.Unmarshaler interface.
+func (s *GRPCProbe) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type plain GRPCProbe
+	if err := unmarshal((*plain)(s)); err != nil {
+		return err
+	}
+
+	if s.MessageType == "" {
+		return errors.New("message type must be set for GRPC module")
+	}
+
+	if s.Method == "" {
+		return errors.New("method must be set for GRPC module")
+	}
+
+	if s.Service == "" {
+		return errors.New("service must be set for GRPC module")
+	}
 	return nil
 }

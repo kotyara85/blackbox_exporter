@@ -31,3 +31,11 @@ modules:
       - expect: "^:[^ ]+ 001"
   icmp:
     prober: icmp
+  grpc:
+    timeout: 10s
+    prober: grpc
+    grpc:
+      service: "grpc.health.v1.Health"
+      method: "Check"
+      message_type: "HealthCheckRequest"
+      response_message: "status:SERVING"
